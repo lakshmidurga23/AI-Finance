@@ -230,6 +230,11 @@ export async function getUserTransactions(query = {}) {
 // Scan Receipt
 export async function scanReceipt(file) {
   try {
+    // Check if API key is available
+    if (!process.env.GEMINI_API_KEY) {
+      throw new Error("GEMINI_API_KEY is not configured");
+    }
+
     const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
     // Convert File to ArrayBuffer
@@ -244,7 +249,7 @@ export async function scanReceipt(file) {
       - Description or items purchased (brief summary)
       - Merchant/store name
       - Suggested category (one of: housing,transportation,groceries,utilities,entertainment,food,shopping,healthcare,education,personal,travel,insurance,gifts,bills,other-expense )
-      
+
       Only respond with valid JSON in this exact format:
       {
         "amount": number,
@@ -273,9 +278,32 @@ export async function scanReceipt(file) {
 
     try {
       const data = JSON.parse(cleanedText);
+
+      // Check if response is empty (not a receipt)
+      if (!data || Object.keys(data).length === 0) {
+        throw new Error("The uploaded image does not appear to be a receipt");
+      }
+
+      // Validate required fields
+      if (!data.amount || !data.date || !data.description || !data.merchantName || !data.category) {
+        throw new Error("Incomplete receipt data extracted from image");
+      }
+
+      // Validate amount is a valid number
+      const amount = parseFloat(data.amount);
+      if (isNaN(amount) || amount <= 0) {
+        throw new Error("Invalid amount extracted from receipt");
+      }
+
+      // Validate date
+      const date = new Date(data.date);
+      if (isNaN(date.getTime())) {
+        throw new Error("Invalid date extracted from receipt");
+      }
+
       return {
-        amount: parseFloat(data.amount),
-        date: new Date(data.date),
+        amount,
+        date,
         description: data.description,
         category: data.category,
         merchantName: data.merchantName,
@@ -286,6 +314,22 @@ export async function scanReceipt(file) {
     }
   } catch (error) {
     console.error("Error scanning receipt:", error);
+    // Re-throw with original message if it's already specific, otherwise generic
+    if (error.message.includes("GEMINI_API_KEY") ||
+        error.message.includes("receipt") ||
+        error.message.includes("Invalid") ||
+        error.message.includes("Incomplete")) {
+      throw error;
+    }
+    // Handle fetch/network errors
+    const errorMessage = error.message.toLowerCase();
+    if (errorMessage.includes("fetch") ||
+        errorMessage.includes("failed") ||
+        errorMessage.includes("network") ||
+        errorMessage.includes("connection") ||
+        error.code === "ECONNREFUSED") {
+      throw new Error("Unable to connect to Gemini API. Please check your internet connection or try again later.");
+    }
     throw new Error("Failed to scan receipt");
   }
 }

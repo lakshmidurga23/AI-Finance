@@ -1,14 +1,8 @@
-# TODO: Fix CSS Output Issue
+# TODO: Fix scanReceipt Error Handling
 
-- [x] Update Tailwind imports in globals.css to use the unified @import "tailwindcss";
-- [x] Run dev server to verify CSS output is correct
-
-# TODO: Add Attractive Features to AI Finance App
-
-- [ ] Implement dark mode toggle for better UX
-- [ ] Add interactive charts/graphs on the dashboard for visualizing spending trends, income vs. expenses
-- [ ] Create AI-powered insights component (e.g., spending predictions or recommendations)
-- [ ] Add export functionality for transactions (e.g., to CSV)
-- [ ] Implement search and filter for transactions
-- [ ] Improve mobile responsiveness
-- [ ] Create user profile/settings page
+- [x] Add check for GEMINI_API_KEY environment variable
+- [x] Handle empty object response when image is not a receipt
+- [x] Validate parsed JSON data (amount, date, etc.)
+- [x] Provide specific error messages instead of generic "Failed to scan receipt"
+- [x] Handle fetch/network errors (e.g., "failed to fetch")
+- [x] Test error handling - confirmed "failed to fetch" now shows user-friendly message

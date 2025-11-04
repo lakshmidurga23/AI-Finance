@@ -210,7 +210,7 @@ export function AddTransactionForm({
           <SelectTrigger suppressHydrationWarning>
             <SelectValue placeholder="Select category" />
           </SelectTrigger>
-          <SelectContent>
+          <SelectContent className="bg-white">
             {filteredCategories.map((category) => (
               <SelectItem key={category.id} value={category.id}>
                 {category.name}
@@ -239,8 +239,9 @@ export function AddTransactionForm({
               <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
             </Button>
           </PopoverTrigger>
-          <PopoverContent className="w-auto p-0" align="start">
+          <PopoverContent className="w-auto p-0 bg-white" align="start">
             <Calendar
+              className="bg-white"
               mode="single"
               selected={date}
               onSelect={(date) => setValue("date", date)}
@@ -307,26 +308,30 @@ export function AddTransactionForm({
 
       {/* Actions */}
       <div className="flex gap-4">
-        <Button
-          type="button"
-          variant="outline"
-          className="w-full"
-          onClick={() => router.back()}
-        >
-          Cancel
-        </Button>
-        <Button type="submit" className="w-full" disabled={transactionLoading}>
-          {transactionLoading ? (
-            <>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              {editMode ? "Updating..." : "Creating..."}
-            </>
-          ) : editMode ? (
-            "Update Transaction"
-          ) : (
-            "Create Transaction"
-          )}
-        </Button>
+        <div className="flex-1 rounded-lg border p-4">
+          <Button
+            type="button"
+            variant="outline"
+            className="w-full"
+            onClick={() => router.back()}
+          >
+            Cancel
+          </Button>
+        </div>
+        <div className="flex-1 rounded-lg border p-4">
+          <Button type="submit" className="w-full" disabled={transactionLoading}>
+            {transactionLoading ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                {editMode ? "Updating..." : "Creating..."}
+              </>
+            ) : editMode ? (
+              "Update Transaction"
+            ) : (
+              "Create Transaction"
+            )}
+          </Button>
+        </div>
       </div>
     </form>
   );
