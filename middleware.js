@@ -1,4 +1,5 @@
-import { authMiddleware } from "@clerk/nextjs";
+import { authMiddleware } from "@clerk/nextjs/server";
+
 import arcjet, { shield } from "@arcjet/next";
 
 export default authMiddleware({
