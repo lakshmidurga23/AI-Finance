@@ -1,54 +1,22 @@
-import arcjet, { createMiddleware, detectBot, shield } from "@arcjet/next";
-import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
-import { NextResponse } from "next/server";
+import { authMiddleware } from "@clerk/nextjs";
+import arcjet, { shield } from "@arcjet/next";
 
-const isProtectedRoute = createRouteMatcher([
-  "/dashboard(.*)",
-  "/account(.*)",
-  "/transaction(.*)",
-]);
-
-// Create Arcjet middleware
-const aj = arcjet({
-  key: process.env.ARCJET_KEY,
-  // characteristics: ["userId"], // Track based on Clerk userId
-  rules: [
-    // Shield protection for content and security
-    shield({
-      mode: "LIVE",
-    }),
-    detectBot({
-      mode: "DRY_RUN", // will block requests. Use "DRY_RUN" to log only
-      allow: [
-        "CATEGORY:SEARCH_ENGINE", // Google, Bing, etc
-        "GO_HTTP", // For Inngest
-        // See the full list at https://arcjet.com/bot-list
+export default authMiddleware({
+  publicRoutes: ["/", "/sign-in", "/sign-up"], // anyone can access these
+  afterAuth(auth, req, evt) {
+    // Optional: Arcjet can be run after Clerk
+    const aj = arcjet({
+      rules: [
+        shield({
+          mode: "DRY_RUN", // Change from "DRY_RUN" to disable warnings
+        }),
       ],
-    }),
-  ],
+    });
+    return aj(req, evt);
+  },
 });
-
-// Create base Clerk middleware
-const clerk = clerkMiddleware(async (auth, req) => {
-  const { userId } = await auth();
-
-  if (!userId && isProtectedRoute(req)) {
-    const { redirectToSignIn } = await auth();
-    return redirectToSignIn();
-  }
-
-  return NextResponse.next();
-});
-
-// Chain middlewares - ArcJet runs first, then Clerk
-export default createMiddleware(aj, clerk);
-export const runtime = "nodejs";
 
 export const config = {
-  matcher: [
-    // Skip Next.js internals and all static files, unless found in search params
-    "/((?!_next|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)",
-    // Always run for API routes
-    "/(api|trpc)(.*)",
-  ],
+  matcher: ["/((?!_next|.*\\..*).*)"],
+  runtime: "nodejs", // prevents the 1MB Edge Function error
 };
