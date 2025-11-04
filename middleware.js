@@ -7,12 +7,11 @@ const aj = arcjet({
   rules: [
     shield({
       mode: "LIVE",
-      // Add any custom rules if needed
+      // Add custom rules if needed
     }),
   ],
 });
 
-// ✅ Correct usage: `clerkMiddleware` takes a function with `req`
 export default clerkMiddleware(async (req) => {
   await aj.protect(req);
   return NextResponse.next();
